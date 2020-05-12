@@ -8,5 +8,6 @@ func Router(config *ServerConfig) *gin.Engine {
 	handlers := &JSEHandlers{ServerConfig: config}
 	stocks := router.Group("/jse")
 	stocks.GET("/today", handlers.HandleTodaysPricesLookup)
+	stocks.GET("/news", handlers.HandleNewsArticle)
 	return router
 }

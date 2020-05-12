@@ -3,7 +3,6 @@ package jsonjse
 import (
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocarina/gocsv"
@@ -12,31 +11,14 @@ import (
 const (
 	jseMarketDataCSVURL = "https://www.jamstockex.com/market-data/download-data/price-history/generate-csv/all-stocks"
 	jseMarketDataURL    = "https://www.jamstockex.com/market-data/download-data/price-history/"
+	jseNewsURL          = "https://www.jamstockex.com/"
 )
-
-type Symbol struct {
-	Symbol           string  `csv:"Symbol"`
-	Date             string  `csv:"Date"`
-	FiftyTwoWeekHigh float64 `csv:"52 Week High"`
-	FiftyTwoWeekLow  float64 `csv:"52 Week Low"`
-	Last             float64 `csv:"Last"`
-	Volume           float64 `csv:"Volume (non block)"`
-	TodayHigh        float64 `csv:"Today High"`
-	TodayLow         float64 `csv:"Today Low"`
-	LastTraded       float64 `csv:"Last Traded"`
-	ClosePrice       float64 `csv:"Close Price"`
-	PreviousYearDiv  float64 `csv:"Previous Year Div"`
-	CurrentYearDiv   float64 `csv:"Current Year Div"`
-	PriceChange      float64 `csv:"Price Change"`
-	ClosingBid       float64 `csv:"Closing Bid"`
-	ClosingAsk       float64 `csv:"Closing Ask"`
-}
 
 type JSE struct {
 	*http.Client
 }
 
-func (j *JSE) GetPricesForDate(date time.Time) ([]Symbol, error) {
+func (j *JSE) GetTodaysPrices() ([]Symbol, error) {
 	var symbols []Symbol
 	u, err := j.todayMarketReportURL()
 	if err != nil {
@@ -64,4 +46,31 @@ func (j *JSE) todayMarketReportURL() (*url.URL, error) {
 
 	// We need to remove the text `onclick="window.location = '` from the start of the URL and the trailing '
 	return url.Parse(rawURL[19 : len(rawURL)-1])
+}
+
+func GetTodaysNews() ([]NewsArticle, error) {
+	doc, err := goquery.NewDocument(jseNewsURL)
+	if err != nil {
+		return nil, err
+	}
+	newsArticles := []NewsArticle{}
+	articles := doc.Find("#primary h5 a")
+	articles.Each(func(i int, article *goquery.Selection) {
+		rawURL, ok := article.Attr("href")
+		if !ok {
+			return
+		}
+
+		articleURL, err := url.Parse(rawURL)
+		if err != nil {
+			return
+		}
+		newsArticle := NewsArticle{
+			Title: article.Text(),
+			URL:   articleURL.String(),
+		}
+		newsArticles = append(newsArticles, newsArticle)
+	})
+
+	return newsArticles, nil
 }
