@@ -9,9 +9,8 @@ import (
 )
 
 const (
-	jseMarketDataCSVURL = "https://www.jamstockex.com/market-data/download-data/price-history/generate-csv/all-stocks"
-	jseMarketDataURL    = "https://www.jamstockex.com/market-data/download-data/price-history/"
-	jseNewsURL          = "https://www.jamstockex.com/"
+	jseMarketDataURL = "https://www.jamstockex.com/market-data/download-data/price-history/"
+	jseNewsURL       = "https://www.jamstockex.com/"
 )
 
 type JSE struct {
@@ -29,8 +28,8 @@ func (j *JSE) GetTodaysPrices() ([]Symbol, error) {
 	if err != nil {
 		return symbols, err
 	}
-	gocsv.Unmarshal(resp.Body, &symbols)
-	return symbols, nil
+	err = gocsv.Unmarshal(resp.Body, &symbols)
+	return symbols, err
 }
 
 func (j *JSE) todayMarketReportURL() (*url.URL, error) {
@@ -48,7 +47,7 @@ func (j *JSE) todayMarketReportURL() (*url.URL, error) {
 	return url.Parse(rawURL[19 : len(rawURL)-1])
 }
 
-func GetTodaysNews() ([]NewsArticle, error) {
+func (j *JSE) GetTodaysNews() ([]NewsArticle, error) {
 	doc, err := goquery.NewDocument(jseNewsURL)
 	if err != nil {
 		return nil, err
