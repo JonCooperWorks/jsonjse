@@ -12,10 +12,9 @@ func (c *JSECache) DailyPrices(date string) ([]Symbol, error) {
 		if err != nil {
 			return symbols, err
 		}
-		err = c.Database.AddDailyPrices(date, symbols)
-		if err != nil {
-			return symbols, err
-		}
+
+		// If we got data from the JSE, continue even if updating the cache fails: we'll try again next time.
+		_ = c.Database.AddDailyPrices(date, symbols)
 	}
 	return symbols, nil
 }
@@ -27,10 +26,9 @@ func (c *JSECache) DailyNews(date string) ([]NewsArticle, error) {
 		if err != nil {
 			return news, err
 		}
-		err = c.Database.AddNewsArticles(date, news)
-		if err != nil {
-			return news, err
-		}
+
+		// If we got news from the JSE, continue even if updating the cache fails: we'll try again next time.
+		_ = c.Database.AddNewsArticles(date, news)
 	}
 	return news, nil
 }
