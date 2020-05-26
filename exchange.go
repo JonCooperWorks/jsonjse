@@ -96,7 +96,7 @@ func (j *JSE) GetTodaysNews() ([]NewsArticle, error) {
 		}
 
 		jamaica, _ := time.LoadLocation("America/Bogota")
-		newsArticles[i].Datetime = date.In(jamaica).Unix()
+		newsArticles[i].Datetime = date.In(jamaica).UnixNano()
 	})
 
 	articleDescriptions.Each(func(i int, description *goquery.Selection) {
