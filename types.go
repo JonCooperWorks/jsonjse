@@ -25,5 +25,5 @@ type NewsArticle struct {
 	Source     string `json:"source"`
 	Lang       string `json:"lang"`
 	HasPaywall bool   `json:"paywall"`
-	Datetime   string `json:"datetime"`
+	Datetime   int64  `json:"datetime"`
 }

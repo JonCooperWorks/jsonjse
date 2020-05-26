@@ -1,15 +1,23 @@
 package jsonjse
 
 import (
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocarina/gocsv"
+	"log"
 	"net/http"
 	"net/url"
+	"regexp"
+	"time"
 )
 
 const (
 	jseMarketDataURL = "https://www.jamstockex.com/market-data/download-data/price-history/"
 	jseNewsURL       = "https://www.jamstockex.com/news/"
+)
+
+var (
+	dateLineRegexp = regexp.MustCompile(`Posted: (?P<Date>.*) at (?P<Time>.*)`)
 )
 
 type JSE struct {
@@ -78,7 +86,17 @@ func (j *JSE) GetTodaysNews() ([]NewsArticle, error) {
 	})
 
 	articleDates.Each(func(i int, dateSelection *goquery.Selection) {
-		newsArticles[i].Datetime = dateSelection.Text()
+		dateLine := dateSelection.Text()
+		match := regexpMap(dateLineRegexp, dateLine)
+		dateString := fmt.Sprintf("%v %v", match["Date"], match["Time"])
+		date, err := time.Parse("January 2, 2006 3:04 pm", dateString)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		jamaica, _ := time.LoadLocation("America/Bogota")
+		newsArticles[i].Datetime = date.In(jamaica).Unix()
 	})
 
 	articleDescriptions.Each(func(i int, description *goquery.Selection) {
@@ -86,4 +104,16 @@ func (j *JSE) GetTodaysNews() ([]NewsArticle, error) {
 	})
 
 	return newsArticles, nil
+}
+
+func regexpMap(r *regexp.Regexp, input string) map[string]string {
+	rMap := map[string]string{}
+	names := r.SubexpNames()
+	res := r.FindStringSubmatch(input)
+	for i, _ := range res {
+		if i != 0 {
+			rMap[names[i]] = res[i]
+		}
+	}
+	return rMap
 }
