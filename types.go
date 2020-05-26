@@ -19,6 +19,11 @@ type Symbol struct {
 }
 
 type NewsArticle struct {
-	Title string `json:"title"`
-	URL   string `json:"url"`
+	Title      string `json:"headline"`
+	URL        string `json:"url"`
+	Summary    string `json:"summary"`
+	Source     string `json:"source"`
+	Lang       string `json:"lang"`
+	HasPaywall bool   `json:"paywall"`
+	Datetime   string `json:"datetime"`
 }

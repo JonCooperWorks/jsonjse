@@ -1,16 +1,15 @@
 package jsonjse
 
 import (
-	"net/http"
-	"net/url"
-
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gocarina/gocsv"
+	"net/http"
+	"net/url"
 )
 
 const (
 	jseMarketDataURL = "https://www.jamstockex.com/market-data/download-data/price-history/"
-	jseNewsURL       = "https://www.jamstockex.com/"
+	jseNewsURL       = "https://www.jamstockex.com/news/"
 )
 
 type JSE struct {
@@ -53,22 +52,37 @@ func (j *JSE) GetTodaysNews() ([]NewsArticle, error) {
 		return nil, err
 	}
 	newsArticles := []NewsArticle{}
-	articles := doc.Find("#primary h5 a")
-	articles.Each(func(i int, article *goquery.Selection) {
-		rawURL, ok := article.Attr("href")
+	articleLinks := doc.Find("#main h1 a")
+	articleDates := doc.Find("p.text-muted")
+	articleDescriptions := doc.Find("#primary div p")
+
+	articleLinks.Each(func(i int, articleLink *goquery.Selection) {
+		rawURL, ok := articleLink.Attr("href")
 		if !ok {
 			return
 		}
 
 		articleURL, err := url.Parse(rawURL)
 		if err != nil {
+			panic(err)
 			return
 		}
 		newsArticle := NewsArticle{
-			Title: article.Text(),
-			URL:   articleURL.String(),
+			Title:      articleLink.Text(),
+			URL:        articleURL.String(),
+			HasPaywall: false,
+			Lang:       "en",
+			Source:     "Jamaica Stock Exchange",
 		}
 		newsArticles = append(newsArticles, newsArticle)
+	})
+
+	articleDates.Each(func(i int, dateSelection *goquery.Selection) {
+		newsArticles[i].Datetime = dateSelection.Text()
+	})
+
+	articleDescriptions.Each(func(i int, description *goquery.Selection) {
+		newsArticles[i].Summary = description.Text()
 	})
 
 	return newsArticles, nil
