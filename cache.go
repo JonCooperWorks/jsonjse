@@ -1,5 +1,7 @@
 package jsonjse
 
+import "log"
+
 type JSECache struct {
 	JSE      *JSE
 	Database *Database
@@ -14,7 +16,10 @@ func (c *JSECache) DailyPrices(date string) ([]Symbol, error) {
 		}
 
 		// If we got data from the JSE, continue even if updating the cache fails: we'll try again next time.
-		_ = c.Database.AddDailyPrices(date, symbols)
+		err = c.Database.AddDailyPrices(date, symbols)
+		if err != nil {
+			log.Printf("Error adding prices: %v", err)
+		}
 	}
 	return symbols, nil
 }
@@ -28,7 +33,8 @@ func (c *JSECache) DailyNews(date string) ([]NewsArticle, error) {
 		}
 
 		// If we got news from the JSE, continue even if updating the cache fails: we'll try again next time.
-		_ = c.Database.AddNewsArticles(date, news)
+		err = c.Database.AddNewsArticles(date, news)
+		log.Printf("Error adding news: %v", err)
 	}
 	return news, nil
 }
